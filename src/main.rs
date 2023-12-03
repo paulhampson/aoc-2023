@@ -2,6 +2,7 @@ use std::cmp::max;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::ptr::null;
 use regex::Regex;
 
 // The output is wrapped in a Result to allow matching on errors
@@ -12,61 +13,118 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
     Ok(io::BufReader::new(file).lines())
 }
 
-fn digit_string_check( s: &str ) -> Result<char, char> {
-    let check_items = [
-        ("one", '1'),
-        ("two", '2'),
-        ("three", '3'),
-        ("four", '4'),
-        ("five", '5'),
-        ("six", '6'),
-        ("seven", '7'),
-        ("eight", '8'),
-        ("nine", '9')
-        ];
-    for (check_string, value) in check_items {
-        if s.starts_with(check_string) {
-            return Ok(value);
-        }
-    }
-    return Err('X');
-}
 
-fn day1() {
-    println!("Day 1");
-    let mut sum_of_numbers = 0;
-    if let Ok(lines) = read_lines("../inputs/day1/day1.txt") {
-        // Consumes the iterator, returns an (Optional) String
-        for line in lines {
-            let mut digits_in_string = String::new();
-            if let Ok(ip) = line {
-                for (i, c) in ip.chars().enumerate() {
-                    let (_, remaining_string) = ip.split_at(i);
-
-                    // check for either numeric digits or string digits
-                    if c.is_digit(10) {
-                        digits_in_string.push(c);
-                    } else if let Ok(digit) = digit_string_check(remaining_string) {
-                        digits_in_string.push(digit);
-                    }
-                }
-            }
-
-            // now get the first and last digit and sum
-            let first_digit = digits_in_string.chars().nth(0).unwrap();
-            let last_digit = digits_in_string.chars().nth_back(0).unwrap();
-            let mut number_from_string = first_digit.to_string();
-            number_from_string.push(last_digit);
-            let n: i32 = number_from_string.parse().unwrap();
-            sum_of_numbers += n;
-        }
-    }
-    println!("{}", sum_of_numbers);
-}
 
 fn main() {
     //day1();
-    day2();
+    //day2();
+    day3();
+}
+
+fn is_symbol(c: char) -> bool
+{
+    return !(c.is_digit(10) || c == '.');
+}
+
+fn check_input(target_line: &str, line_prior: Option<&String>, line_following: Option<&String>) -> Vec<i32>
+{
+    let number_re = Regex::new(r".*?(?<number>[0-9]+).*?").unwrap();
+    let mut found_parts:Vec<i32> = vec![];
+    for capture in number_re.captures_iter(target_line) {
+        let number = &capture["number"];
+        let start_index = capture.get(1).unwrap().start();
+        let end_index = capture.get(1).unwrap().end();
+        let mut has_adjacent_symbol = false;
+
+        println!("number={}, start_index={}, end_index={}, target_line={}",number,start_index,end_index,target_line);
+
+        if line_prior.is_some() {
+            let start_point = match start_index {
+                0 => 0,
+                _ => start_index - 1
+            };
+
+            let mut end_point = end_index + 1;
+            if end_index == line_prior.unwrap().len() {
+                end_point = end_index;
+            }
+
+            let area_of_interest = &line_prior.unwrap()[start_point..end_point];
+            for c in area_of_interest.chars() {
+                if has_adjacent_symbol {
+                    break;
+                }
+                has_adjacent_symbol = is_symbol(c);
+
+            }
+        }
+
+        if line_following.is_some() {
+            let start_point = match start_index {
+                0 => 0,
+                _ => start_index - 1
+            };
+            let mut end_point = end_index + 1;
+            if end_index == line_following.unwrap().len() {
+                end_point = end_index;
+            }
+
+            let area_of_interest = &line_following.unwrap()[start_point..end_point];
+            for c in area_of_interest.chars() {
+                if has_adjacent_symbol {
+                    break;
+                }
+                has_adjacent_symbol = is_symbol(c);
+            }
+        }
+
+        if start_index > 0 {
+            if is_symbol(target_line.chars().nth(start_index-1).unwrap()) {
+                has_adjacent_symbol = true;
+            }
+        }
+
+        if end_index < target_line.len() {
+            if is_symbol(target_line.chars().nth(end_index).unwrap()) {
+                has_adjacent_symbol = true;
+            }
+        }
+
+        if has_adjacent_symbol {
+            found_parts.push(number.parse::<i32>().unwrap());
+        }
+    }
+
+    return found_parts;
+}
+
+fn day3() {
+    println!("Day 3");
+    let mut input_data: Vec<String> = vec![];
+    if let Ok(lines) = read_lines("./inputs/day3/input.txt") {
+        for line in lines {
+            if let Ok(ip) = line {
+                input_data.push(ip);
+            }
+        }
+    }
+
+    // find position and length of number in the line
+    // check the characters before and after it for symbols (indices A and B)
+    // check the characters on the line above and below that are between the same indices as A and B
+    let mut all_found_parts: Vec<i32> = vec![];
+    for (idx, line) in input_data.iter().enumerate() {
+        let line_prior = match idx {
+            0 => None,
+            _ => input_data.get(idx-1)
+        };
+        let line_following = input_data.get(idx+1);
+        let mut found_parts = check_input(&line, line_prior, line_following);
+        all_found_parts.append(&mut found_parts);
+    }
+
+    let sum_of_parts:i32 = all_found_parts.iter().sum();
+    println!("{}",sum_of_parts);
 }
 
 fn get_ball_count( round: &str, colour: &str ) -> i32
@@ -146,4 +204,56 @@ fn day2() {
     }
     println!("Valid Game ID Sum = {}", game_id_sum);
     println!("Power Sum = {}", power_sum);
+}
+
+fn digit_string_check( s: &str ) -> Result<char, char> {
+    let check_items = [
+        ("one", '1'),
+        ("two", '2'),
+        ("three", '3'),
+        ("four", '4'),
+        ("five", '5'),
+        ("six", '6'),
+        ("seven", '7'),
+        ("eight", '8'),
+        ("nine", '9')
+    ];
+    for (check_string, value) in check_items {
+        if s.starts_with(check_string) {
+            return Ok(value);
+        }
+    }
+    return Err('X');
+}
+
+fn day1() {
+    println!("Day 1");
+    let mut sum_of_numbers = 0;
+    if let Ok(lines) = read_lines("../inputs/day1/day1.txt") {
+        // Consumes the iterator, returns an (Optional) String
+        for line in lines {
+            let mut digits_in_string = String::new();
+            if let Ok(ip) = line {
+                for (i, c) in ip.chars().enumerate() {
+                    let (_, remaining_string) = ip.split_at(i);
+
+                    // check for either numeric digits or string digits
+                    if c.is_digit(10) {
+                        digits_in_string.push(c);
+                    } else if let Ok(digit) = digit_string_check(remaining_string) {
+                        digits_in_string.push(digit);
+                    }
+                }
+            }
+
+            // now get the first and last digit and sum
+            let first_digit = digits_in_string.chars().nth(0).unwrap();
+            let last_digit = digits_in_string.chars().nth_back(0).unwrap();
+            let mut number_from_string = first_digit.to_string();
+            number_from_string.push(last_digit);
+            let n: i32 = number_from_string.parse().unwrap();
+            sum_of_numbers += n;
+        }
+    }
+    println!("{}", sum_of_numbers);
 }
