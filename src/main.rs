@@ -2,6 +2,7 @@ mod day1;
 mod read_lines;
 mod day3;
 mod day2;
+mod day4;
 
 use std::env;
 
@@ -17,7 +18,7 @@ fn main() {
         "day2" => day2::run(),
         "day3" => day3::run(),
         "day3b" => day3::run_partb(),
-        _ => day3::run_partb()
+        _ => day4::run()
     }
 }
 
