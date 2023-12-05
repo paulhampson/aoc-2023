@@ -18,7 +18,9 @@ fn main() {
         "day2" => day2::run(),
         "day3" => day3::run(),
         "day3b" => day3::run_partb(),
-        _ => day4::run()
+        "day4" => day4::run(),
+        "day4b" => day4::run_part_b(),
+        _ => day4::run_part_b()
     }
 }
 
