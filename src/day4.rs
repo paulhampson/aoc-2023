@@ -7,7 +7,7 @@ fn convert_number_capture_to_vector(s: &str) -> Vec<i32> {
 }
 
 fn parse_game_card(card_string: String) -> (i32, u32) {
-    let mut points;
+    let points;
 
     let card_re = Regex::new(r"(Card\s*[0-9]+:)\s*(?<winning_numbers>([0-9]+\s*)+)\|\s+(?<scratch_numbers>([0-9]+\s*)+)").unwrap();
 
