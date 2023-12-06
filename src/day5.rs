@@ -18,7 +18,7 @@ fn map_source_to_destination(source: i64, src_to_dest_map: &SrcToDestMap) -> i64
         let min_src = map_entry.source_start;
         let max_src = map_entry.source_start + map_entry.count;
 
-        if min_src <= source && source <= max_src {
+        if min_src <= source && source < max_src {
             let offset = source - min_src;
             return map_entry.dest_start + offset;
         }
@@ -33,7 +33,7 @@ fn seed_to_location(seed_id:i64, almanac: &Almanac) -> i64 {
     println!("seed = {}", dest);
 
     for (map_name, src_to_dest_map) in almanac.iter() {
-        print!("Looking at {}, src={}", map_name, dest);
+         print!("Looking at {}, src={}", map_name, dest);
         dest = map_source_to_destination(dest, src_to_dest_map);
         println!(", dest={}", dest);
     }
@@ -45,7 +45,7 @@ fn load_maps() -> (Vec<i64>, Almanac) {
     let mut map_collection = Almanac::new();
     let mut seed_list:Vec<i64> = vec![];
 
-    if let Ok(lines) = read_lines("./inputs/day5/input.txt") {
+    if let Ok(lines) = read_lines("./inputs/day5/test.txt") {
         let map_entry_re = Regex::new(r"^(?<dest_start>[0-9]*)\s+(?<src_start>[0-9]*)\s+(?<map_length>[0-9]*)$").unwrap();
         let map_name_re = Regex::new(r"^(?<map_name>[\-\w]+) map:$").unwrap();
         let seeds_re = Regex::new(r"^seeds: (?<seeds>[0-9\s?]*)").unwrap();
@@ -86,6 +86,26 @@ pub fn run() {
     let mut location:i64 = i64::MAX;
     for seed in seed_list {
         location = min(location, seed_to_location(seed, &almanac));
+    }
+
+    println!("Lowest location = {}", location);
+}
+
+pub fn run_part_b() {
+    println!("Day 5 part B");
+    let (seed_list, almanac) = load_maps();
+
+    // For part B to be efficient need process chunks of seeds, not individual seeds - so we can split into multiple paths for each mapping
+
+    let mut location:i64 = i64::MAX;
+    for chunk in seed_list.chunks(2) {
+        for seed in chunk[0]..(chunk[0]+chunk[1]) {
+            let idx = seed - chunk[0];
+            if idx % 1000000 == 0 {
+                println!("On {} of {} ({} %)", idx, chunk[1], (idx*100)/chunk[1] );
+            }
+            location = min(location, seed_to_location(seed, &almanac));
+        }
     }
 
     println!("Lowest location = {}", location);
