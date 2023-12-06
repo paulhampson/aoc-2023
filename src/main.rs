@@ -4,6 +4,7 @@ mod day3;
 mod day2;
 mod day4;
 mod day5;
+mod day6;
 
 use std::env;
 
@@ -23,7 +24,7 @@ fn main() {
         "day4b" => day4::run_part_b(),
         "day5" => day5::run(),
         "day5b" => day5::run_part_b(),
-        _ => day5::run_part_b()
+        "day6" | _ => day6::run(),
     }
 }
 
