@@ -4,10 +4,9 @@ use crate::read_lines::read_lines;
 
 #[derive(Hash, PartialEq, Eq, PartialOrd, Ord)]
 enum PlayingCard {
-    Ace = 14,
-    King = 13,
-    Queen = 12,
-    Jack = 11,
+    Ace = 13,
+    King = 12,
+    Queen = 11,
     Ten = 10,
     Nine = 9,
     Eight = 8,
@@ -16,7 +15,8 @@ enum PlayingCard {
     Five = 5,
     Four = 4,
     Three = 3,
-    Two = 2
+    Two = 2,
+    Joker = 1,
 }
 
 impl PlayingCard {
@@ -25,7 +25,7 @@ impl PlayingCard {
             'A' => Ok(PlayingCard::Ace),
             'K' => Ok(PlayingCard::King),
             'Q' => Ok(PlayingCard::Queen),
-            'J' => Ok(PlayingCard::Jack),
+            'J' => Ok(PlayingCard::Joker),
             'T' => Ok(PlayingCard::Ten),
             '9' => Ok(PlayingCard::Nine),
             '8' => Ok(PlayingCard::Eight),
@@ -62,16 +62,38 @@ impl HandType {
 
         card_count.sort_by(|_, a_count, _, b_count| a_count.cmp(b_count) );
         card_count.reverse();
-        let(_, first_count) = card_count.iter().nth(0).unwrap();
-        let second_cart_count = card_count.iter().nth(1);
+
+        let joker_count = card_count.get(&PlayingCard::Joker).unwrap_or(&0);
+        let mut first_idx = 0;
+        let mut second_idx = 1;
+        if let Some(joker_idx) = card_count.get_index_of(&PlayingCard::Joker) {
+            match joker_idx {
+                0 => {
+                    first_idx += 1;
+                    second_idx += 1;
+                },
+                1 => {
+                    second_idx += 1;
+                },
+                _ => ()
+            }
+        }
+
+        // no more cards, just jokers - so five of a kind, so lets early exit.
+        if first_idx >= card_count.iter().count() {
+            return HandType::FiveOfAKind;
+        }
+
+        let (_, first_count) = card_count.iter().nth(first_idx).unwrap();
+        let second_cart_count = card_count.iter().nth(second_idx);
+        let joker_plus_first_count = joker_count + first_count;
 
         let mut second_count:&i32 = &0;
         if  second_cart_count.is_some() {
             (_, second_count) = second_cart_count.unwrap();
         }
 
-
-        match first_count {
+        match joker_plus_first_count {
             5 => HandType::FiveOfAKind,
             4 => HandType::FourOfAKind,
             3 => {
@@ -144,6 +166,7 @@ fn play_cmp(a: &Play, b: &Play) -> Ordering {
 }
 
 pub fn run() {
+    println!("Day 7 part b");
     let mut all_plays = vec![];
 
     if let Ok(lines) = read_lines("./inputs/day7/input.txt") {
