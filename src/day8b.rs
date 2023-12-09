@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use num::Integer;
 use regex::Regex;
 use crate::read_lines::read_lines;
 
@@ -30,60 +31,66 @@ fn read_navigation_instructions(filename: &str) -> String {
 
 
 
-fn count_steps(graph: HashMap<String, (String, String)>, instructions: String) -> i32 {
-    let mut step_count = 0;
+fn count_steps(graph: HashMap<String, (String, String)>, instructions: String) -> Vec<i64> {
+    let mut all_step_counts = vec![];
 
 
     // Find all the starting nodes - ones that end with A
     let starting_nodes:Vec<&String> = graph.keys().filter(|n| n.chars().nth_back(0).unwrap() == 'A').collect();
-    let mut next_node_list = vec![];
-    for node in starting_nodes.iter() {
-        next_node_list.push(node.to_string());
-    }
+    println!("starting_nodes = {:?}", starting_nodes);
 
-    println!("{:?}", next_node_list);
+    // Find how many steps for each starting node to a '**Z' node
+    for starting_node in starting_nodes.iter() {
+        let mut next_node = starting_node.to_string();
+        let mut step_count = 0;
+        println!("processing starting node {}", next_node);
 
-    while !next_node_list.iter().all(|n| n.chars().nth_back(0).unwrap() == 'Z') {
-        for instruction in instructions.chars() {
-            // update all nodes
-            for (idx, next_node) in next_node_list.clone().iter().enumerate() {
+        while next_node.chars().nth_back(0).unwrap() != 'Z' {
+            for instruction in instructions.chars() {
                 let node_idx = next_node.as_str();
                 match instruction {
                     'L' => {
                         let (left_edge, _) = graph.get(node_idx).unwrap().clone();
-                        next_node_list[idx] = left_edge;
+                        next_node = left_edge;
                     },
                     'R' => {
-                        let (_, right_edge) = graph.get(node_idx).unwrap();
-                        next_node_list[idx] = right_edge.clone();
+                        let (_, right_edge) = graph.get(node_idx).unwrap().clone();
+                        next_node = right_edge;
                     },
                     _ => assert!(false, "Invalid navigation instruction")
                 }
-            }
-            step_count += 1;
 
-            // check nodes don't equal the stop condition
-            if next_node_list.iter().any(|n| n.chars().nth_back(0).unwrap() == 'Z') {
-                dbg!(step_count);
-                println!("{:?}", next_node_list);
-            }
+                step_count += 1;
 
-            if next_node_list.iter().all(|n| n.chars().nth_back(0).unwrap() == 'Z') {
-                break;
+                // check nodes don't equal the stop condition
+                if next_node.chars().nth_back(0).unwrap() == 'Z' {
+                    all_step_counts.push(step_count);
+                    break;
+                }
             }
         }
     }
 
-    return step_count;
+    return all_step_counts;
+}
+
+fn vector_lcm(v: Vec<i64>) -> i64 {
+    let mut result = v.first().unwrap().clone();
+    for n in v.iter().skip(1) {
+        result = result.lcm(n).clone();
+    }
+
+    return result;
 }
 
 pub fn run() {
     let input_file = "inputs/day8/input.txt";
     let input_graph = read_graph(input_file);
     let input_nav_instructions = read_navigation_instructions(input_file);
-    let step_count = count_steps(input_graph, input_nav_instructions);
+    let step_counts = count_steps(input_graph, input_nav_instructions);
 
-    println!("{}", step_count);
+    println!("Find the least common multiple of {:?}", step_counts);
+    println!("LCM = {}", vector_lcm(step_counts));
 }
 
 
