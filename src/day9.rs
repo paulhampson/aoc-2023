@@ -18,7 +18,7 @@ fn process_input(filename: &str) -> Vec<i32> {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(ip) = line {
-                let input_sequence = ip.split_whitespace().map(|x| x.parse::<i32>().unwrap()).collect();
+                let input_sequence = ip.split_whitespace().map(|x| x.parse::<i32>().unwrap()).rev().collect();
                 results.push(predict_next(input_sequence));
             }
         }
