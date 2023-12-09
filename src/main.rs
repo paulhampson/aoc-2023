@@ -9,6 +9,7 @@ mod day7;
 mod day7b;
 mod day8;
 mod day8b;
+mod day9;
 
 use std::env;
 
@@ -32,7 +33,8 @@ fn main() {
         "day7" => day7::run(),
         "day7b" => day7b::run(),
         "day8" => day8::run(),
-        "day8b" | _ => day8b::run(),
+        "day8b" => day8b::run(),
+        "day9" | _ => day9::run(),
     }
 }
 
