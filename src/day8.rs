@@ -4,7 +4,7 @@ use crate::read_lines::read_lines;
 
 fn read_graph(filename: &str) -> HashMap<String, (String, String)> {
     let mut input_graph = HashMap::new();
-    let node_string_re = Regex::new(r"^(?<node_name>[A-Z]{3}) = \((?<left_node>[[A-Z]]{3}), (?<right_node>[A-Z]{3})\)$").unwrap();
+    let node_string_re = Regex::new(r"^(?<node_name>[A-Z]{3}) = \((?<left_node>[A-Z]{3}), (?<right_node>[A-Z]{3})\)$").unwrap();
 
     if let Ok(lines) = read_lines(filename) {
         // Consumes the iterator, returns an (Optional) String
