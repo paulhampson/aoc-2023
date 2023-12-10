@@ -9,3 +9,5 @@ edition = "2021"
 regex = "1.10.2"
 indexmap = { version = "2.1.0", features = [] }
 num = "0.4.1"
+array2d = "0.3.0"
+enum-iterator = "1.4.1"
