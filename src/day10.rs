@@ -3,6 +3,7 @@ use crate::day10::Direction::{East, North, South, West};
 use crate::day10::PipeSegment::{EastWest, Ground, NorthEast, NorthSouth, NorthWest, SouthEast, SouthWest, StartPosition};
 use crate::read_lines::read_lines;
 use enum_iterator::{all, Sequence};
+use num::abs;
 
 #[derive(Clone, Eq, PartialEq)]
 enum PipeSegment {
@@ -90,7 +91,7 @@ impl Direction {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 struct PipeMapLocation {
     row: usize,
     column: usize,
@@ -186,6 +187,7 @@ fn find_pipe_route(start_location: PipeMapLocation, pipe_map: &PipeMap) -> Vec<P
     let mut direction = find_starting_direction(start_location, pipe_map);
     let mut current_location = start_location;
 
+    route.push(current_location);
     current_location = next_location_in_direction(&current_location, direction).unwrap();
 
     while keep_looking {
@@ -201,10 +203,46 @@ fn find_pipe_route(start_location: PipeMapLocation, pipe_map: &PipeMap) -> Vec<P
 }
 
 pub fn run() {
+    println!("Day 10 Part A");
     let input_filename = "inputs/day10/input.txt";
 
     let (pipe_map, start_point) = parse_input_and_find_start(input_filename);
     let route = find_pipe_route(start_point, &pipe_map);
 
-    dbg!((route.iter().count() / 2) + 1);
+    dbg!(route.iter().count() / 2);
+
+    println!("Day 10 Part B");
+
+    dbg!(get_interior_point_count(route));
+}
+
+/// Pick's Theorem (https://en.wikipedia.org/wiki/Pick%27s_theorem) gives:
+///
+/// Area = interior_point_count + boundary_point_count/2 - 1
+///
+/// We want interior points. So:
+///
+/// interior_point_count = Area + 1 - boundary_point_count/2
+///
+/// Using the 'Shoelace algorithm' we can determine the area. The boundary point count is the
+/// length of the route we found in part A.
+fn get_interior_point_count(boundary_points: Vec<PipeMapLocation>) -> i64 {
+
+    // Calculate area using shoelace
+    let number_of_points = boundary_points.iter().count();
+    let mut sum1 = 0;
+    let mut sum2 = 0;
+
+    for idx in 0..number_of_points-1 {
+        sum1 = sum1 + (boundary_points[idx].column * boundary_points[idx+1].row) as i64;
+        sum2 = sum2 + (boundary_points[idx].row * boundary_points[idx+1].column) as i64;
+    }
+
+    // Link back to the start
+    sum1 = sum1 + (boundary_points[number_of_points-1].column * boundary_points[0].row) as i64;
+    sum2 = sum2 + (boundary_points[number_of_points-1].row * boundary_points[0].column) as i64;
+
+    let area_of_polygon = abs(sum1 - sum2) / 2;
+
+    return area_of_polygon - ((number_of_points as i64)/2) + 1;
 }
