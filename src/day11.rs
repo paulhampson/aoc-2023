@@ -4,7 +4,7 @@ use itertools::Itertools;
 use num::abs;
 use crate::read_lines::read_lines;
 
-#[derive(Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 enum SpaceDataPoint {
     Galaxy,
     EmptySpace
@@ -22,15 +22,10 @@ impl SpaceDataPoint {
 
 type SpaceImage = Array2D<SpaceDataPoint>;
 
+#[derive(Debug)]
 struct SpaceLocation {
-    x: i32,
-    y: i32
-}
-
-struct GalaxyPair {
-    galaxy_a: SpaceLocation,
-    galaxy_b: SpaceLocation,
-    distance: usize
+    x: i64,
+    y: i64
 }
 
 fn parse_input(filename: &str) -> SpaceImage {
@@ -76,14 +71,43 @@ fn expand_universe(image: SpaceImage) -> SpaceImage {
     SpaceImage::from_rows(&*row_expansion_vec).unwrap()
 }
 
-fn find_galaxies(space_image: SpaceImage) -> Vec<SpaceLocation> {
+fn count_prior_blanks(x_pos: usize, y_pos: usize, space_image: &SpaceImage) -> (i64, i64) {
+    let mut prior_x_blank_count = 0;
+    let mut prior_y_blank_count = 0;
+
+    for (i, mut column) in space_image.columns_iter().enumerate() {
+        if i >= x_pos {
+            break;
+        }
+        if column.all(|&p1| p1 == EmptySpace) {
+            prior_x_blank_count += 1;
+        }
+    }
+
+    for (i, mut row) in space_image.rows_iter().enumerate() {
+        if i >= y_pos {
+            break;
+        }
+        if row.all(|&p1| p1 == EmptySpace) {
+            prior_y_blank_count += 1;
+        }
+    }
+
+    return (prior_x_blank_count, prior_y_blank_count);
+}
+
+fn find_galaxies(space_image: SpaceImage, age_factor: i64) -> Vec<SpaceLocation> {
     let mut galaxy_list = vec![];
 
-    for (x_pos, y_pos) in space_image.indices_row_major() {
-        if *space_image.get(x_pos, y_pos).unwrap() == Galaxy {
+    for (y_pos, x_pos) in space_image.indices_row_major() {
+        if *space_image.get(y_pos, x_pos).unwrap() == Galaxy {
+            // find blank rows and cols before this position and expand the positions
+            let (prior_blank_x_count, prior_blank_y_count) = count_prior_blanks(x_pos, y_pos, &space_image);
+
+
             galaxy_list.push(SpaceLocation{
-                x: x_pos as i32,
-                y: y_pos as i32
+                x: ((age_factor-1) * prior_blank_x_count) + x_pos as i64,
+                y: ((age_factor-1) * prior_blank_y_count) + y_pos as i64
             });
         }
     }
@@ -91,7 +115,7 @@ fn find_galaxies(space_image: SpaceImage) -> Vec<SpaceLocation> {
     return galaxy_list;
 }
 
-fn find_distance_between_galaxies_pairs(galaxy_locations: Vec<SpaceLocation>) -> Vec<i32>
+fn find_distance_between_galaxies_pairs(galaxy_locations: Vec<SpaceLocation>) -> Vec<i64>
 {
     let mut galaxy_distances = vec![];
 
@@ -111,10 +135,12 @@ pub fn run() {
     let input_filename = "inputs/day11/input.txt";
 
     let input_map = parse_input(input_filename);
-    let expanded_map = expand_universe(input_map);
-    let galaxy_locations = find_galaxies(expanded_map);
+    // let expanded_map = expand_universe(input_map);
+    // let galaxy_locations = find_galaxies(expanded_map, 0);
+    let galaxy_locations = find_galaxies(input_map, 1000000);
+    dbg!(&galaxy_locations);
     let galaxy_distances = find_distance_between_galaxies_pairs(galaxy_locations);
 
     dbg!(galaxy_distances.iter().count());
-    dbg!(galaxy_distances.iter().sum::<i32>());
+    dbg!(galaxy_distances.iter().sum::<i64>());
 }
