@@ -47,6 +47,7 @@ fn parse_input(filename: &str) -> SpaceImage {
     SpaceImage::from_rows(&*image_vec).unwrap()
 }
 
+#[allow(dead_code)]
 fn expand_universe(image: SpaceImage) -> SpaceImage {
     let mut column_expansion_vec = vec![];
     for col in image.as_columns().iter()
@@ -131,7 +132,7 @@ fn find_distance_between_galaxies_pairs(galaxy_locations: Vec<SpaceLocation>) ->
 }
 
 pub fn run() {
-    println!("Day 11 Part A");
+    println!("Day 11 Part B");
     let input_filename = "inputs/day11/input.txt";
 
     let input_map = parse_input(input_filename);
