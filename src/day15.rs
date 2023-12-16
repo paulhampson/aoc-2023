@@ -52,11 +52,6 @@ fn parse_input_a(filename: &str) -> i32 {
     hashes.iter().sum()
 }
 
-struct Lens {
-    label: String,
-    focal_length: i32
-}
-
 fn parse_input_b(filename: &str) -> HashMap<u8, IndexMap<String, u32>> {
     let mut boxes:HashMap<u8, IndexMap<String, u32>> = HashMap::new();
     if let Ok(lines) = read_lines(filename) {

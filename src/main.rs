@@ -45,7 +45,7 @@ fn main() {
         "day9" => day9::run(),
         "day10" => day10::run(),
         "day11" => day11::run(),
-        "day12" => println!("Todo"),
+        "day12" => day12::run(), // not completed
         "day13" => day13::run(),
         "day14" => day14::run(),
         "day15" => day15::run(),

@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 use array2d::Array2D;
 use LightTravelDirection::{BottomToTop, RightToLeft, TopToBottom};
@@ -133,15 +134,11 @@ fn parse_input(filename: &str) -> CellGrid {
     CellGrid::from_rows(&*cell_grid_as_vector).unwrap()
 }
 
-fn find_activated_cell_count(cell_grid: CellGrid, print_activation_map: bool) -> usize {
+fn find_activated_cell_count(cell_grid: &CellGrid, start_beam:LightBeam, print_activation_map: bool) -> usize {
     let mut activation_map = ActivationMap::filled_with(false, cell_grid.num_rows(), cell_grid.num_columns());
 
     let mut light_beams = vec![];
-    light_beams.push(LightBeam {
-        row: 0,
-        column: 0,
-        direction: LeftToRight
-    });
+    light_beams.push(start_beam);
 
     let mut beam_history = HashMap::new();
 
@@ -186,6 +183,34 @@ pub fn run() {
     let input_filename = "inputs/day16/input.txt";
 
     let cell_grid = parse_input(input_filename);
-    dbg!(find_activated_cell_count(cell_grid, false));
 
+    // have the start beam in the top left
+    let start_beam = LightBeam {
+        row: 0,
+        column: 0,
+        direction: LeftToRight
+    };
+    println!("Part A: {}", find_activated_cell_count(&cell_grid, start_beam, false));
+
+    // For part B we need to find the max by iterating the starting beam round the boundary of the
+    // grid to find the max activation count
+    let mut max_activation = 0;
+
+    let num_rows = cell_grid.num_rows();
+    let num_columns = cell_grid.num_columns();
+
+    let directions = vec![
+        (0..num_rows).map(|row_idx| LightBeam { row: row_idx, column: 0, direction: LeftToRight }).collect::<Vec<_>>(),
+        (0..num_rows).map(|row_idx| LightBeam { row: row_idx, column: num_columns - 1, direction: RightToLeft }).collect::<Vec<_>>(),
+        (0..num_columns).map(|col_idx| LightBeam { row: 0, column: col_idx, direction: TopToBottom }).collect::<Vec<_>>(),
+        (0..num_columns).map(|col_idx| LightBeam { row: num_rows - 1, column: col_idx, direction: BottomToTop }).collect::<Vec<_>>(),
+    ];
+
+    for beams in directions {
+        for start_beam in beams {
+            max_activation = max(max_activation, find_activated_cell_count(&cell_grid, start_beam, false));
+        }
+    }
+
+    println!("Part B: {}", max_activation);
 }
