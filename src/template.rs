@@ -9,6 +9,9 @@ fn parse_input(filename: &str) {
             }
         }
     }
+    else {
+        println!("File not read");
+    }
 }
 
 pub fn run() {
