@@ -42,10 +42,11 @@ enum DirectionOfTravel {
 impl DirectionOfTravel {
     fn go(d: DirectionOfTravel) -> (i32, i32) {
         match d {
-            North => (0, -1),
-            South => (0, 1),
-            West => (-1, 0),
-            East => (1, 0)
+            // row, col
+            North => (-1, 0),
+            South => (1, 0),
+            West => (0, -1),
+            East => (0, 1)
         }
     }
 }
@@ -57,7 +58,7 @@ struct Cart{
     h: Vec<DirectionOfTravel>
 }
 
-fn next_cart_states(weight_grid: &WeightGrid, c: &Cart) -> Vec<(Cart, usize)>
+fn part_a_next_steps(c: &Cart) -> Vec<DirectionOfTravel>
 {
     // First work out what would be the reverse direction and eliminate that from the set, if we aren't travelling yet
     // (e.g. at the start) we can go in any direction
@@ -71,13 +72,61 @@ fn next_cart_states(weight_grid: &WeightGrid, c: &Cart) -> Vec<(Cart, usize)>
         }
     }
 
-    // eliminate directions if we have been in the same direction 3 times
-    if c.h.len() == 3 && c.h.iter().all_equal() {
+    // eliminate direction if we have been in the same direction 3 times
+    if c.h.len() >= 3 {
+        if c.h.rchunks(3).next().unwrap().iter().all_equal() {
+            let d = c.h.last().unwrap();
+            if let Some((index, _)) = possible_next_step.iter().find_position(|&s| s == d) {
+                possible_next_step.remove(index);
+            }
+        }
+    }
+
+    possible_next_step
+}
+
+fn part_b_next_steps(c: &Cart) -> Vec<DirectionOfTravel>
+{
+    // First work out what would be the reverse direction and eliminate that from the set, if we aren't travelling yet
+    // (e.g. at the start) we can go in any direction
+    let mut possible_next_step = vec![North, South, West, East];
+    if let Some(direction_of_travel) = c.d {
+        possible_next_step = match direction_of_travel {
+            North => vec![North, West, East],
+            East => vec![North, South, East],
+            South => vec![South, West, East],
+            West => vec![North, South, West],
+        }
+    }
+
+    // eliminate directions if we have been in the same direction 10 times
+    if c.h.len() >= 10 && c.h.iter().all_equal() {
         let d = c.h.last().unwrap();
         if let Some((index, _)) = possible_next_step.iter().find_position(|&s| s == d) {
             possible_next_step.remove(index);
         }
     }
+
+    // travel minimum of 4 steps in same direction before being allowed to turn
+    if c.h.len() > 0 {
+        if c.h.len() < 4 || !c.h.rchunks(4).next().unwrap().iter().all_equal()
+        {
+            possible_next_step = vec![c.h.last().unwrap().clone()];
+        }
+    }
+
+    possible_next_step
+}
+
+fn next_cart_states(weight_grid: &WeightGrid, c: &Cart, part_a: bool) -> Vec<(Cart, usize)>
+{
+
+    let possible_next_step:Vec<DirectionOfTravel> =
+        if part_a {
+            part_a_next_steps(c)
+        } else {
+            part_b_next_steps(c)
+        };
 
     let mut next_steps_vec = vec![];
 
@@ -94,8 +143,9 @@ fn next_cart_states(weight_grid: &WeightGrid, c: &Cart) -> Vec<(Cart, usize)>
 
         let mut updated_history = c.h.clone();
         updated_history.push(step);
-        if updated_history.len() > 3 {
-            let start_index = updated_history.len() - 3;
+        let max_history_length = if part_a { 3 } else { 10 };
+        if updated_history.len() > max_history_length {
+            let start_index = updated_history.len() - max_history_length;
             updated_history = updated_history.drain(start_index..).collect();
         }
 
@@ -112,23 +162,42 @@ fn next_cart_states(weight_grid: &WeightGrid, c: &Cart) -> Vec<(Cart, usize)>
     return next_steps_vec;
 }
 
-fn success_check(c: &Cart, t: &Pos) -> bool {
+fn success_check_part_a(c: &Cart, t: &Pos) -> bool {
     c.p == *t
 }
 
-fn find_lowest_heat_loss_path(weight_grid: &WeightGrid) -> usize {
+fn success_check_part_b(c: &Cart, t: &Pos) -> bool {
+    // in position and we had 4 steps in the sam direction to slow down
+    c.p == *t && c.h.rchunks(4).next().unwrap().iter().all_equal()
+}
 
-    let successors = |c:&Cart| next_cart_states(weight_grid, c);
+fn find_lowest_heat_loss_path_part_a(weight_grid: &WeightGrid) -> usize {
+
+    let successors = |c:&Cart| next_cart_states(weight_grid, c, true);
     let target_position = Pos(weight_grid.num_rows()-1, weight_grid.num_columns()-1);
-    let success_check = |c:&Cart| success_check(c, &target_position);
+    let success_check = |c:&Cart| success_check_part_a(c, &target_position);
     let starting_state = Cart {
         p: Pos(0,0),
         d: None,
         h: vec![]
     };
 
-    let (path, cost) = dijkstra(&starting_state, successors, success_check).unwrap();
-    dbg!(path);
+    let (_, cost) = dijkstra(&starting_state, successors, success_check).unwrap();
+    cost
+}
+
+fn find_lowest_heat_loss_path_part_b(weight_grid: &WeightGrid) -> usize {
+
+    let successors = |c:&Cart| next_cart_states(weight_grid, c, false);
+    let target_position = Pos(weight_grid.num_rows()-1, weight_grid.num_columns()-1);
+    let success_check = |c:&Cart| success_check_part_b(c, &target_position);
+    let starting_state = Cart {
+        p: Pos(0,0),
+        d: None,
+        h: vec![]
+    };
+
+    let (_, cost) = dijkstra(&starting_state, successors, success_check).unwrap();
     cost
 }
 
@@ -137,5 +206,8 @@ pub fn run() {
     let input_filename = "inputs/day17/input.txt";
 
     let weight_grid = parse_input(input_filename);
-    dbg!(find_lowest_heat_loss_path(&weight_grid));
+    dbg!(find_lowest_heat_loss_path_part_a(&weight_grid));
+
+    println!("Day 17 Part B");
+    dbg!(find_lowest_heat_loss_path_part_b(&weight_grid));
 }
