@@ -134,7 +134,7 @@ fn find_lowest_heat_loss_path(weight_grid: &WeightGrid) -> usize {
 
 pub fn run() {
     println!("Day 17 Part A");
-    let input_filename = "inputs/day17/test.txt";
+    let input_filename = "inputs/day17/input.txt";
 
     let weight_grid = parse_input(input_filename);
     dbg!(find_lowest_heat_loss_path(&weight_grid));
