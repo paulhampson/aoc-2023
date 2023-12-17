@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use tqdm::tqdm;
 use crate::day12::SpringStatus::{Damaged, Operational, Unknown};
 use crate::read_lines::read_lines;
 
