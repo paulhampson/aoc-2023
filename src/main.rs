@@ -17,6 +17,7 @@ mod day12;
 mod day13;
 mod day15;
 mod day16;
+mod day17;
 
 
 use std::env;
@@ -49,7 +50,8 @@ fn main() {
         "day13" => day13::run(),
         "day14" => day14::run(),
         "day15" => day15::run(),
-        "day16" | _ => day16::run(),
+        "day16" => day16::run(),
+        "day17" | _ => day17::run(),
     }
 }
 

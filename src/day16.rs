@@ -142,7 +142,9 @@ fn find_activated_cell_count(cell_grid: &CellGrid, start_beam:LightBeam, print_a
 
     let mut beam_history = HashMap::new();
 
+    // let mut count = 0;
     while light_beams.len() > 0 {
+        // count += 1;
         let mut new_light_beam_set = vec![];
         for light_beam in light_beams.iter().cloned() {
             if activation_map.set(light_beam.row, light_beam.column, true).is_err() {
@@ -162,6 +164,7 @@ fn find_activated_cell_count(cell_grid: &CellGrid, start_beam:LightBeam, print_a
         }
         light_beams = new_light_beam_set;
     }
+    //dbg!(count);
 
     if print_activation_map {
 
@@ -207,6 +210,7 @@ pub fn run() {
     ];
 
     for beams in directions {
+        println!("Iterating over {} beams", beams.len());
         for start_beam in beams {
             max_activation = max(max_activation, find_activated_cell_count(&cell_grid, start_beam, false));
         }
