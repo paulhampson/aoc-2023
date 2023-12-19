@@ -103,7 +103,7 @@ fn part_b_get_instructions(di: &Vec<DigInstruction>) -> Vec<DigInstruction> {
     let mut new_instructions = vec![];
 
     for original_instruction in di {
-        let mut hex_code = original_instruction.colour_str.trim_start_matches("(#").trim_end_matches(")");
+        let hex_code = original_instruction.colour_str.trim_start_matches("(#").trim_end_matches(")");
         let (steps_str, direction_str) = hex_code.split_at(5);
 
         new_instructions.push(DigInstruction {
