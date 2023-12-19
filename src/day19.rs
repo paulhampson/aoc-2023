@@ -176,6 +176,15 @@ fn filter_items_sum_accepted(filters: HashMap<String, Vec<Rule>>, items: Vec<Ite
     sum
 }
 
+fn find_accepting_paths(rules:HashMap<String, Vec<Rule>>, entry_point: String) -> Vec<Vec<Rule>> {
+    let mut paths = vec![];
+
+    // Do a DFS and add the paths when we reach an acceptance point
+
+
+    return paths;
+}
+
 pub fn run() {
     println!("Day 19 Part A");
     let input_filename = "inputs/day19/input.txt";
