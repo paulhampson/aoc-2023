@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use pathfinding::prelude::dfs_reach;
 use regex::Regex;
 use TestOperation::{GT, LT};
 use crate::read_lines::read_lines;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 enum TestOperation {
     GT,
     LT
@@ -19,7 +20,7 @@ impl TestOperation {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 struct Rule {
     property: Option<char>,
     test_operation: Option<TestOperation>,
@@ -156,19 +157,15 @@ fn run_filter(filter: &Vec<Rule>, item: &Item) -> String {
     return outcome.unwrap();
 }
 
-fn filter_items_sum_accepted(filters: HashMap<String, Vec<Rule>>, items: Vec<Item>) -> i32 {
+fn filter_items_sum_accepted(filters: &HashMap<String, Vec<Rule>>, items: Vec<Item>) -> i32 {
     let mut sum = 0;
 
     for item in items {
         let mut target_rule = String::from("in");
-        dbg!(&item);
         while target_rule != "A" && target_rule != "R" {
-            dbg!(&target_rule);
             target_rule = run_filter(&filters[&target_rule], &item);
         }
-        dbg!(&target_rule);
         if target_rule == "A" {
-            dbg!(item.get_item_sum());
             sum += item.get_item_sum();
         }
     }
@@ -176,19 +173,34 @@ fn filter_items_sum_accepted(filters: HashMap<String, Vec<Rule>>, items: Vec<Ite
     sum
 }
 
-fn find_accepting_paths(rules:HashMap<String, Vec<Rule>>, entry_point: String) -> Vec<Vec<Rule>> {
-    let mut paths = vec![];
+fn next_nodes(n: &String, rules: &HashMap<String, Vec<Rule>>) -> Vec<String>
+{
+    let mut next_nodes: Vec<String> = vec![];
 
-    // Do a DFS and add the paths when we reach an acceptance point
+    if rules.contains_key(n) {
+        for r in rules.get(n).unwrap() {
+            let outcome_string = r.outcome.clone();
+            next_nodes.push(outcome_string);
+        }
+    }
+    next_nodes
+}
 
+fn find_accepting_paths(rules: &HashMap<String, Vec<Rule>>, entry_point: &str) -> Vec<Vec<Rule>> {
+    let mut paths: Vec<Vec<Rule>> = vec![];
+    let start_node = String::from(entry_point);
+    //let traversed_paths: HashMap<String, >
 
-    return paths;
+    todo!();
+    //return paths;
 }
 
 pub fn run() {
     println!("Day 19 Part A");
-    let input_filename = "inputs/day19/input.txt";
+    let input_filename = "inputs/day19/test.txt";
 
     let (rules, items) = parse_input(input_filename);
-    dbg!(filter_items_sum_accepted(rules, items));
+    dbg!(filter_items_sum_accepted(&rules, items));
+
+    let paths = find_accepting_paths(&rules, "in");
 }
