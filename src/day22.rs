@@ -170,7 +170,7 @@ fn count_bricks_not_supporting_others(brick_snapshot: Vec<Brick>) -> i32 {
         }
     }
 
-    let mut removal_candidate_list = vec![];
+    // let mut removal_candidate_list: Vec<_> = vec![];
     for (z_level, this_layer_bricks) in z_map.iter() {
         if let Some(bricks_above) = z_map.get(&(z_level + 1)){
             for brick in this_layer_bricks {

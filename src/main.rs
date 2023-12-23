@@ -21,6 +21,8 @@ mod day17;
 mod day18;
 mod day19;
 mod day21;
+mod day22;
+mod day23;
 
 
 use std::env;
@@ -58,7 +60,9 @@ fn main() {
         "day18" => day18::run(),
         "day19" => day19::run(), // part A only
         "day20" => todo!(),
-        "day21" | _ => day21::run(),
+        "day21" => day21::run(),
+        "day22" => day22::run(), // incomplete
+        "day23" | _ => day23::run(),
     }
 }
 
