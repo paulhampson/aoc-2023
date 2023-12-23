@@ -2,6 +2,7 @@ use std::cmp::max;
 use array2d::Array2D;
 use itertools::Itertools;
 use pathfinding::directed::dfs::dfs_reach;
+use pathfinding::prelude::bfs_reach;
 use crate::day23::MapTileType::{EastSlope, Forest, NorthSlope, Path, SouthSlope, WestSlope};
 use crate::read_lines::read_lines;
 
@@ -109,10 +110,10 @@ fn next_map_positions(map_grid: &MapGrid, current_tracker: &MapTraversalTracker)
     // Build valid step options - slopes can only move in the direction they slope in
     // Rule 1 & 3
     let deltas = match current_map_tile {
-        NorthSlope => vec![NORTH_STEP],
-        SouthSlope => vec![SOUTH_STEP],
-        EastSlope => vec![EAST_STEP],
-        WestSlope => vec![WEST_STEP],
+        // NorthSlope => vec![NORTH_STEP],
+        // SouthSlope => vec![SOUTH_STEP],
+        // EastSlope => vec![EAST_STEP],
+        // WestSlope => vec![WEST_STEP],
         _ => vec![NORTH_STEP, SOUTH_STEP, EAST_STEP, WEST_STEP]
     };
 
@@ -169,7 +170,7 @@ fn get_longest_scenic_path_length(map_grid: &MapGrid, start_position: &Pos, end_
 }
 
 pub fn run() {
-    println!("Day 23 Part A");
+    println!("Day 23 Part B");
     let input_filename = "inputs/day23/input.txt";
 
     let map_grid = parse_input(input_filename);
